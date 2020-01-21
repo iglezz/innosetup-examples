@@ -16,32 +16,32 @@ Uninstallable=no
 function InitializeSetup(): Boolean;
 var
 	FileName: String;
-	CurrentVersion, MinVersion: TFileVersion; // объявляем переменные
+	CurrentVersion, MinVersion: TFileVersion; // Г®ГЎГєГїГўГ«ГїГҐГ¬ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ
 begin
-	// Задаём требуемую версию:
+	// Г‡Г Г¤Г ВёГ¬ ГІГ°ГҐГЎГіГҐГ¬ГіГѕ ГўГҐГ°Г±ГЁГѕ:
 	FileVersionSetI(MinVersion, 5, 80, 0, 0);
-	// или так:
+	// ГЁГ«ГЁ ГІГ ГЄ:
 	//FileVersionSetS(MinVersion, '5.80.0.10');
 	
-	// Имя файла:
+	// Г€Г¬Гї ГґГ Г©Г«Г :
 	FileName := ExpandConstant('{src}') + '\test.exe';
 	
 	if Not FileExists(FileName) then begin
-		MsgBox('Установка Прекращена:'#13#13 + 'Файл `' + ExtractFileName(FileName) + '` не найден', mbCriticalError, MB_OK);
+		MsgBox('Г“Г±ГІГ Г­Г®ГўГЄГ  ГЏГ°ГҐГЄГ°Г Г№ГҐГ­Г :'#13#13 + 'Г”Г Г©Г« `' + ExtractFileName(FileName) + '` Г­ГҐ Г­Г Г©Г¤ГҐГ­', mbCriticalError, MB_OK);
 		Result := False;
 		Exit;
 	end;
 	
-	// Файл существует, считываем версию:
+	// Г”Г Г©Г« Г±ГіГ№ГҐГ±ГІГўГіГҐГІ, Г±Г·ГЁГІГ»ГўГ ГҐГ¬ ГўГҐГ°Г±ГЁГѕ:
 	FileVersionSetF(CurrentVersion, FileName);
 	
-	// Сравниваем и решаем что делать:
+	// Г‘Г°Г ГўГ­ГЁГўГ ГҐГ¬ ГЁ Г°ГҐГёГ ГҐГ¬ Г·ГІГ® Г¤ГҐГ«Г ГІГј:
 	if FileVersionCompare(CurrentVersion, MinVersion) > -1 then
 		Result := True
 	else begin
-		MsgBox('Установка Прекращена:' \
-		+ #13#13'Версия файла `' + ExtractFileName(FileName) + '`: ' + FileVersionToStr(CurrentVersion) \
-		+ #13#13'Требуется версия как минимум: ' + FileVersionToStr(MinVersion) \
+		MsgBox('Г“Г±ГІГ Г­Г®ГўГЄГ  ГЏГ°ГҐГЄГ°Г Г№ГҐГ­Г :' \
+		+ #13#13'Г‚ГҐГ°Г±ГЁГї ГґГ Г©Г«Г  `' + ExtractFileName(FileName) + '`: ' + FileVersionToStr(CurrentVersion) \
+		+ #13#13'Г’Г°ГҐГЎГіГҐГІГ±Гї ГўГҐГ°Г±ГЁГї ГЄГ ГЄ Г¬ГЁГ­ГЁГ¬ГіГ¬: ' + FileVersionToStr(MinVersion) \
 		, mbCriticalError, MB_OK);
 		Result := False;
 	end;
