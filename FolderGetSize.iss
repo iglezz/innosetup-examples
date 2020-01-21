@@ -1,5 +1,5 @@
 ; Function FolderGetSize
-; version 0.1 
+; version 0.2
 ;
 ; Returns folder size in bytes
 ;
@@ -9,67 +9,60 @@
 ; #define YOURVARIABLE FolderGetSize(FOLDERPATH)
 ;
 ;
+; Example:
+;
+; #define SizeThemes FolderGetSize(SourcePath + "Themes\")
+;
+;
 ; Solution source:
 ; https://stackoverflow.com/questions/36742636/inno-setup-recurse-sub-directories-without-creating-those-same-sub-directories
 ;
 
-#define FindHandle
-#define FindResult
-#dim InnerMask[65536]
-#define InnerMask[0] ""
+#dim FW_Array[65536]
+#define FW_Array[0] ""
 
 #sub ProcessFoundFile
-    #define InnerFileName FindGetFileName(FindHandle)
-    #define FileName InnerMask[InnerMaskWorkPosition] + InnerFileName
+    #define InnerFileName FindGetFileName(FW_Handle)
+    #define FileName FW_Array[FW_Current] + InnerFileName
 
     #if InnerFileName != "." && InnerFileName != ".."
         #if DirExists(FileName)
-            #define Public InnerMask[InnerMaskPosition] FileName + "\"
-            #define Public InnerMaskPosition InnerMaskPosition + 1
+            #define Public FW_Array[FW_Size] FileName + "\"
+            #define Public FW_Size FW_Size + 1
         #else
-            #expr CalculatedSize = CalculatedSize + FileSize(FileName)
+            #expr FW_FilesSize = FW_FilesSize + FileSize(FileName)
         #endif
     #endif
 #endsub
 
-#sub ProcessInnerMaskPosition
-    #for { FindHandle = FindResult = FindFirst(InnerMask[InnerMaskWorkPosition] + "*", faAnyFile); \
-           FindResult; \
-           FindResult = FindNext(FindHandle) \
-         } \
-         ProcessFoundFile
+#sub ProcessFolders
+    #for { FW_Handle = FW_Result = FindFirst(FW_Array[FW_Current] + "*", faAnyFile); FW_Result; FW_Result = FindNext(FW_Handle) } ProcessFoundFile
 
-    #if FindHandle
-        #expr FindClose(FindHandle)
+    #if FW_Handle
+        #expr FindClose(FW_Handle)
     #endif
 #endsub
 
-#sub CollectFiles
-    #if DirExists(InnerMask[0]) == 0
-        #pragma message "Folder not found: """ + InnerMask[0] + """"
+#sub FolderWalker
+    #if DirExists(FW_Array[0]) == 0
+        #pragma message "Folder not found: """ + FW_Array[0] + """"
         #pragma error "Folder not found"
     #endif
 
-    #ifdef CalculatedSize
-        #undef CalculatedSize
-    #endif
+    #undef Public FW_FilesSize
+    #define Public FW_FilesSize 0
 
-    #define Public CalculatedSize 0
-    #if Copy(InnerMask[0], Len(InnerMask[0])) != "\"
-        #expr InnerMask[0] = InnerMask[0] + "\"
-    #endif
+    #define Public FW_Handle
+    #define Public FW_Result
+    #define Public FW_Size 1
+    #define Public FW_Current 0
 
-    #define Public InnerMaskPosition 1
-    #define Public InnerMaskWorkPosition 0
+    #for { FW_Current = 0; FW_Current < FW_Size; FW_Current++ } ProcessFolders
 
-    #for { InnerMaskWorkPosition = 0; \
-           InnerMaskWorkPosition < InnerMaskPosition; \
-           InnerMaskWorkPosition++ 
-         } \
-		 ProcessInnerMaskPosition
-
-    #undef Public InnerMaskPosition
-    #undef Public InnerMaskWorkPosition
+    #undef Public FW_Handle
+    #undef Public FW_Result
+    #undef Public FW_Size
+    #undef Public FW_Current
 #endsub
 
-#define FolderGetSize(str S) InnerMask[0] = S, CollectFiles, CalculatedSize
+#define FolderGetSize(str S) FW_Array[0] = AddBackslash(S), FolderWalker, FW_FilesSize
